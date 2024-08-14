@@ -1,7 +1,7 @@
 import express from "express";
-import { addOrderItems, getOrderDetail, getOrders, upsertOrder } from "./orders.service";
+import { addOrderItems, deleteOrderItem, getOrderDetail, getOrders, upsertOrder } from "./orders.service";
 import { validate } from "../../middleware/validation.middleware";
-import { idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, pagingRequestSchema } from "../types";
+import { idItemIdUUIDRequestSchema, idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, pagingRequestSchema } from "../types";
 
 export const ordersRouter = express.Router();
 
@@ -111,3 +111,19 @@ ordersRouter.get("/:id", async (req, res) => {
         res.status(500).json({message: "Addition failed"});
     }
   });
+
+
+  // DELETE sub collection
+ordersRouter.delete("/:id/items/:itemId", validate(idItemIdUUIDRequestSchema), async(req, res) => {
+  const data = idItemIdUUIDRequestSchema.parse(req);
+  const order = await deleteOrderItem(data.params.id, data.params.itemId);
+
+  if (order != null) {
+    res.json(order);    
+  } else {
+    res.status(404).json({message: "Order or item Not Found"});
+  }
+});
+
+
+
