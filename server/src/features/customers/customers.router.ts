@@ -1,6 +1,8 @@
 import express from "express";
-import { getCustomerDetail, getCustomers, searchCustomers  } from "./customers.service";
+import { getCustomerDetail, getCustomers, searchCustomers, upsertCustomer  } from "./customers.service";
 import { getOrdersForCustomer } from "../orders/orders.service";
+import { customerPOSTRequestSchema } from "../types";
+import { validate } from "../../middleware/validation.middleware";
 
 export const customersRouter = express.Router();
 
@@ -44,6 +46,18 @@ customersRouter.get("/search/:query", async (req, res) => {
 
 
 
+//POST
 
+// POST
+customersRouter.post("/", validate(customerPOSTRequestSchema), async(req, res) => {
+  const data = customerPOSTRequestSchema.parse(req);
+  const customer = await upsertCustomer(data.body);
+
+  if (customer != null){
+    res.status(201).json(customer);
+  } else {
+    res.status(500).json({message: "Creation failed"});
+  }  
+});
 
 

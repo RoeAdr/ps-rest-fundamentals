@@ -1,7 +1,7 @@
 import express from "express";
-import { getOrderDetail, getOrders } from "./orders.service";
+import { addOrderItems, getOrderDetail, getOrders, upsertOrder } from "./orders.service";
 import { validate } from "../../middleware/validation.middleware";
-import { idUUIDRequestSchema, pagingRequestSchema } from "../types";
+import { idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, pagingRequestSchema } from "../types";
 
 export const ordersRouter = express.Router();
 
@@ -47,7 +47,7 @@ ordersRouter.get("/", async(req, res) => {
 
 
 // GET /{id}
-
+// call http://localhost:4000/api/orders/9d104001-cd90-49e3-9580-c032f9eb77e6
 ordersRouter.get("/:id", validate(idUUIDRequestSchema), async (req, res) => {
     const data = idUUIDRequestSchema.parse(req);
     const order = await getOrderDetail(data.params.id);
@@ -71,3 +71,43 @@ ordersRouter.get("/:id", async (req, res) => {
     }
   });
   */
+
+
+
+// POST
+  ordersRouter.post("/", validate(orderPOSTRequestSchema), async(req, res) => {
+    const data = orderPOSTRequestSchema.parse(req);
+    const order = await upsertOrder(data.body);
+  
+    if (order != null){
+      res.status(201).json(order);
+    } else {
+      res.status(500).json({message: "Creation failed"});
+    }  
+  });
+
+
+  // POST add item to an order  
+  /*
+  call post http://localhost:4000/api/orders/9d104001-cd90-49e3-9580-c032f9eb77e6/items
+
+  Body:
+[
+    {
+        "orderId": "9d104001-cd90-49e3-9580-c032f9eb77e6",
+        "itemId": 3,
+        "quantity": 3
+    }
+]
+
+  */
+  ordersRouter.post("/:id/items", validate(orderItemsDTORequestSchema), async (req, res) => {
+    const data = orderItemsDTORequestSchema.parse(req);
+    const order = await addOrderItems(data.params.id, data.body);
+
+    if (order != null) {
+        res.status(201).json(order);
+    } else {
+        res.status(500).json({message: "Addition failed"});
+    }
+  });
