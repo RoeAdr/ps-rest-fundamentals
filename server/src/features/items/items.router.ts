@@ -1,7 +1,7 @@
 import express from "express";
 import { deleteItem, getItemDetail, getItems, upsertItem } from "./items.service";
 import { validate } from "../../middleware/validation.middleware";
-import { idNumberRequestSchema, itemPOSTRequestSchema } from "../types";
+import { idNumberRequestSchema, itemPOSTRequestSchema, itemPUTRequestSchema } from "../types";
 
 export const itemsRouter = express.Router();
 
@@ -54,6 +54,20 @@ itemsRouter.delete("/:id", validate(idNumberRequestSchema), async (req, res) => 
     res.status(404).json({message: "Item Not Found"});
   }
 
+});
+
+
+
+// PUT
+itemsRouter.put("/:id", validate(itemPUTRequestSchema), async (req, res) => {
+  const data = itemPUTRequestSchema.parse(req);
+  const item = await upsertItem(data.body, data.params.id);
+
+  if (item != null) {
+    res.json(item);    
+  } else {
+    res.status(404).json({message: "Item Not Found"});
+  }
 });
 
 

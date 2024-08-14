@@ -1,7 +1,7 @@
 import express from "express";
 import { addOrderItems, deleteOrderItem, getOrderDetail, getOrders, upsertOrder } from "./orders.service";
 import { validate } from "../../middleware/validation.middleware";
-import { idItemIdUUIDRequestSchema, idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, pagingRequestSchema } from "../types";
+import { idItemIdUUIDRequestSchema, idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, orderPUTRequestSchema, pagingRequestSchema } from "../types";
 
 export const ordersRouter = express.Router();
 
@@ -122,6 +122,21 @@ ordersRouter.delete("/:id/items/:itemId", validate(idItemIdUUIDRequestSchema), a
     res.json(order);    
   } else {
     res.status(404).json({message: "Order or item Not Found"});
+  }
+});
+
+
+
+
+ordersRouter.put("/:id", validate(orderPUTRequestSchema), async (req, res) => {
+  const data = orderPUTRequestSchema.parse(req);
+  const orderData = {customerId: "", ...data.body}; // Special impelmentation for this demo where we create a new order obj other methods are also possible...
+  const order = await upsertOrder(orderData, data.params.id);
+
+  if(order != null) {
+    res.json(order);
+  } else {
+    res.status(404).json({message: "Order Not Found"});
   }
 });
 
